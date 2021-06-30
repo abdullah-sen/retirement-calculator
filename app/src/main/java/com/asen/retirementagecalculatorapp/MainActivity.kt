@@ -8,6 +8,7 @@ import android.widget.TextView
 import com.microsoft.appcenter.AppCenter
 import com.microsoft.appcenter.analytics.Analytics
 import com.microsoft.appcenter.crashes.Crashes
+import kotlin.math.pow
 
 class MainActivity : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -48,12 +49,22 @@ class MainActivity : AppCompatActivity() {
                 if (retirementAge <= currentAge) {
                     Analytics.trackEvent("wrong_age", properties)
                 }
-                resultTextView.text = "At the current rate of $interestRate%, saving \$$monthlySaving a month you will have \$X by $retirementAge."
-
+                val futureSavings = calculateRetirement(interestRate, currentSaving, monthlySaving, (retirementAge - currentAge)*12)
+                resultTextView.text = "At the current rate of $interestRate%, saving \$$monthlySaving a month you will have \$${String.format("%f", futureSavings)} by $retirementAge."
             } catch (e: Exception) {
                 Analytics.trackEvent(e.toString())
             }
 
         }
+    }
+
+    private fun calculateRetirement(interestRate: Float, currentSavings: Float, monthly: Float, numMonths: Int): Float {
+        var futureSavings = currentSavings * (1+(interestRate/100/12)).pow(numMonths)
+
+        for (i in 1..numMonths) {
+            futureSavings += monthly * (1+(interestRate/100/12)).pow(i)
+        }
+
+        return  futureSavings
     }
 }
